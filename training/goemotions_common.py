@@ -30,15 +30,10 @@ def make_loaders(tokenizer, max_length=MAX_LENGTH, batch_size=BATCH_SIZE):
     dataset = load_goemotions()
     text_field, label_field, label_names = infer_schema(dataset)
     train, validation, test = prepare_study2_splits(dataset, label_field)
-    validation_source = (
-        "published validation"
-        if "validation" in dataset or "valid" in dataset
-        else "seed-42 stratified 10% of published train"
-    )
     print(
         "Study 2 splits | "
         f"train={len(train):,} validation={len(validation):,} test={len(test):,} | "
-        f"published test preserved; validation source={validation_source}"
+        "published test preserved; validation is seed-42 stratified 10% of train"
     )
 
     def tokenize(batch):
