@@ -18,7 +18,7 @@ def main():
         print("Examples:", split.select(range(min(3, len(split))))[:])
         counts = Counter(split[label_field])
         print("Class distribution:", {label_names[i]: counts[i] for i in range(len(label_names))})
-    custom_split_needed = not ({"validation", "valid"} & set(dataset.keys()))
+    custom_split_needed = "validation" not in dataset
     print("Custom validation split needed:", custom_split_needed)
     train, validation, test = prepare_study2_splits(dataset, label_field)
     print("Final shared split sizes:")
@@ -28,9 +28,6 @@ def main():
     if custom_split_needed:
         print("Split policy: stratified 90/10 split of published train, seed 42")
         print("The published test split remains unchanged.")
-    else:
-        validation_name = "validation" if "validation" in dataset else "valid"
-        print(f"Split policy: preserve published '{validation_name}' split.")
 
 
 if __name__ == "__main__":

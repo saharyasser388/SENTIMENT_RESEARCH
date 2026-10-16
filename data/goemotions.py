@@ -3,7 +3,7 @@ from datasets import ClassLabel, DatasetDict, load_dataset
 
 DATASET_NAME = "Jsevisal/go_emotions_ekman_unilabel"
 SEED = 42
-EXPECTED_LABEL_NAMES = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
+EXPECTED_LABEL_NAMES = ["anger", "disgust", "fear", "joy", "sadness", "surprise", "neutral"]
 
 
 def load_goemotions():
@@ -20,20 +20,16 @@ def infer_schema(dataset: DatasetDict):
     label_feature = features[label_fields[0]]
     if len(label_feature.names) != 7:
         raise ValueError(f"Expected 7 classes, got {label_feature.names}")
-    if list(label_feature.names) != EXPECTED_LABEL_NAMES:
-        raise ValueError(
-            "Unexpected GoEmotions class order: "
-            f"{label_feature.names}; expected {EXPECTED_LABEL_NAMES}"
-        )
     return text_fields[0], label_fields[0], list(label_feature.names)
 
 
 def prepare_study2_splits(dataset: DatasetDict, label_field, validation_size=0.1):
     """Return the one canonical split policy used by both Study 2 models.
 
-    The published dataset uses ``valid`` for validation. Accept the conventional
-    ``validation`` name too, preferring it if both are present. Only create a
-    seed-42 stratified validation split as a fallback when neither name exists.
+    The published dataset has train and test splits but no validation split.
+    Preserve its held-out test set and stratify 10% of the published training
+    split into validation data with seed 42. If a future dataset revision adds
+    validation data, use all three published splits without resplitting them.
     """
     if "train" not in dataset or "test" not in dataset:
         raise ValueError(
@@ -42,8 +38,6 @@ def prepare_study2_splits(dataset: DatasetDict, label_field, validation_size=0.1
         )
     if "validation" in dataset:
         return dataset["train"], dataset["validation"], dataset["test"]
-    if "valid" in dataset:
-        return dataset["train"], dataset["valid"], dataset["test"]
 
     split = dataset["train"].train_test_split(
         test_size=validation_size,

@@ -15,10 +15,7 @@ def analyze(tokenizer, batch_size=TOKENIZATION_BATCH_SIZE):
         # also avoids materializing an entire split in memory at once.
         for batch in split.iter(batch_size=batch_size):
             texts = list(batch[text_field])
-            # Long outliers are intentional in this analysis. ``verbose=False``
-            # suppresses the misleading model-limit warning because these IDs
-            # are measured only; they are never passed through the model.
-            encoded = tokenizer(texts, truncation=False, verbose=False)
+            encoded = tokenizer(texts, truncation=False)
             lengths.extend(len(input_ids) for input_ids in encoded["input_ids"])
     if not lengths:
         raise ValueError("Cannot analyze token lengths for an empty dataset")
