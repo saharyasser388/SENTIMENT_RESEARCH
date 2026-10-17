@@ -1,16 +1,13 @@
 from transformers import GPT2LMHeadModel, GPT2TokenizerFast
 from models.gpt2 import GPT_CONFIG_124M, load_hf_weights_into_gpt
 from models.gpt2_classifier import GPT2Classifier
-from training.goemotions_common import seed_everything, train
+from training.goemotions_common import train
 
 MODEL_NAME = "openai-community/gpt2"
 CHECKPOINT_PATH = "checkpoints/study2_gpt2_goemotions_best.pt"
 
 
 def main():
-    # Seed before constructing the classifier so its randomly initialized head
-    # is reproducible as well as the later data order and optimization steps.
-    seed_everything()
     tokenizer = GPT2TokenizerFast.from_pretrained(MODEL_NAME)
     tokenizer.pad_token = tokenizer.eos_token
     model = GPT2Classifier(GPT_CONFIG_124M, num_classes=7)
