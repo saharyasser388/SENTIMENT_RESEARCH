@@ -33,7 +33,7 @@ def make_loaders(tokenizer, max_length=MAX_LENGTH, batch_size=BATCH_SIZE):
     print(
         "Study 2 splits | "
         f"train={len(train):,} validation={len(validation):,} test={len(test):,} | "
-        "published test preserved; validation is seed-42 stratified 10% of train"
+        "published train, validation, and test preserved without resampling"
     )
 
     def tokenize(batch):

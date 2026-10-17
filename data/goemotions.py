@@ -3,7 +3,7 @@ from datasets import ClassLabel, DatasetDict, load_dataset
 
 DATASET_NAME = "Jsevisal/go_emotions_ekman_unilabel"
 SEED = 42
-EXPECTED_LABEL_NAMES = ["anger", "disgust", "fear", "joy", "sadness", "surprise", "neutral"]
+EXPECTED_LABEL_NAMES = ["anger", "disgust", "fear", "joy", "neutral", "sadness", "surprise"]
 
 
 def load_goemotions():
@@ -24,12 +24,10 @@ def infer_schema(dataset: DatasetDict):
 
 
 def prepare_study2_splits(dataset: DatasetDict, label_field, validation_size=0.1):
-    """Return the one canonical split policy used by both Study 2 models.
+    """Preserve published splits, accepting either validation split name.
 
-    The published dataset has train and test splits but no validation split.
-    Preserve its held-out test set and stratify 10% of the published training
-    split into validation data with seed 42. If a future dataset revision adds
-    validation data, use all three published splits without resplitting them.
+    Optional arguments remain for compatibility with existing callers.
+    Missing validation data requires inspection, never silent resampling.
     """
     if "train" not in dataset or "test" not in dataset:
         raise ValueError(
@@ -39,22 +37,18 @@ def prepare_study2_splits(dataset: DatasetDict, label_field, validation_size=0.1
     if "validation" in dataset:
         return dataset["train"], dataset["validation"], dataset["test"]
 
-    split = dataset["train"].train_test_split(
-        test_size=validation_size,
-        seed=SEED,
-        stratify_by_column=label_field,
+    if "valid" in dataset:
+        return dataset["train"], dataset["valid"], dataset["test"]
+    raise ValueError(
+        "Study 2 requires a published 'valid' or 'validation' split. "
+        "Inspect the dataset revision before training; do not resample train."
     )
-    return split["train"], split["test"], dataset["test"]
 
 
 def require_standard_splits(dataset: DatasetDict):
     """Compatibility wrapper for checkouts using the original helper name.
 
-    The first Study 2 revision required a published validation split. Keeping
-    this name prevents a partially updated checkout from silently retaining
-    that obsolete behavior; it now delegates to the canonical split policy.
-    New code should call :func:`prepare_study2_splits` with its known label
-    field instead.
+    Both helper names preserve the same published splits.
     """
     _, label_field, _ = infer_schema(dataset)
     return prepare_study2_splits(dataset, label_field)
