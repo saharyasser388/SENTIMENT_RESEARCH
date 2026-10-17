@@ -1,34 +1,22 @@
 # Study 2: GoEmotions-Ekman Dataset
 
-## Objective
-Inspect `Jsevisal/go_emotions_ekman_unilabel`, confirm its schema and class order, and fix one split policy for both models.
+## Verified dataset contract
 
-## Why this step is needed
-A shared, single-label, seven-class dataset is necessary for a fair architecture comparison.
+Offline inspection on 2026-10-18 confirmed the cached `Jsevisal/go_emotions_ekman_unilabel` dataset (cache revision `be5851241c507d83c14d4f276814750f37a421ec`):
 
-## Configuration
-Seed: 42. Inspection command: `python -m scripts.12_inspect_goemotions`.
+- Text field: `sentence`; ClassLabel field: `labels`.
+- Published splits: `train` 39,575; `valid` 4,947; `test` 4,947.
+- Encoded class order: anger, disgust, fear, joy, neutral, sadness, surprise.
+- Shared maximum length: 64, as recorded in both completed result artifacts.
 
-## Architecture
-Not applicable.
+These observations supersede the earlier proxy-blocked placeholders and the incorrect claim that validation must be resampled from train. They confirm the local cache, not a fresh upstream download.
 
-## Dataset
-The requested Hugging Face dataset is used directly. The code discovers the sole string field and `ClassLabel` field rather than assuming their names. The published dataset has `train` and `test` splits but no `validation` split. Study 2 preserves the published test set and deterministically creates validation data with a stratified 90/10 split of the published training data using seed 42. Both models call this same helper.
+## Split policy
 
-## What changed
-Added shared schema validation, deterministic split preparation, dataset inspection, and separate GPT-2/BERT length-analysis scripts.
+Both models use `prepare_study2_splits`. It preserves the published train, validation, and test objects unchanged, accepts `valid` or `validation` (the latter takes precedence), and raises an error if validation is absent. It never silently creates a new split. Seed 42 and validation Macro-F1 selection remain configured; the test set is reserved for final evaluation.
 
-## Results
-Not measured. The execution environment returned HTTP 403 from its configured proxy while contacting Hugging Face, so split sizes, field names, class order, distributions, and token-length statistics could not be truthfully recorded.
+## Historical evidence
 
-## Observations
-The inspection script prints all requested evidence. Training cannot proceed until its output confirms the remote schema. The expected semantic classes are anger, disgust, fear, joy, sadness, surprise, and neutral, but their encoded order is deliberately not asserted without measurement.
+The existing stash based on `7715d45` contains a `valid` alias fix and a cached inspection dated 2026-09-21 with the same schema and sizes. Later branch code handled only `validation` and would have resampled this dataset. The audit restores the published-split policy without applying the stash or altering Study 1.
 
-## Problems encountered
-Hugging Face dataset access was blocked by the environment proxy.
-
-## Interpretation
-No dataset or experimental result is claimed. This is intentionally an incomplete measurement record rather than invented data.
-
-## Next step
-Run scripts 12–14 with Hugging Face access, record their output here, and set the shared maximum length from both measured distributions before training.
+The saved result artifacts contain 4,947 examples in each validation/test confusion matrix but no dataset revision or row IDs. This does not establish the exact producing code or historical split membership. See [the comparison audit](09_study2_comparison.md) for provenance limits. No token-length statistics were recomputed.

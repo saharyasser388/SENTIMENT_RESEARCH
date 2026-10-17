@@ -1,12 +1,13 @@
 from transformers import AutoTokenizer
 from models.bert_classifier import BertClassifier
-from training.goemotions_common import train
+from training.goemotions_common import seed_everything, train
 
 MODEL_NAME = "google-bert/bert-base-uncased"
 CHECKPOINT_PATH = "checkpoints/study2_bert_goemotions_best.pt"
 
 
 def main():
+    seed_everything()
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     train(BertClassifier(MODEL_NAME, num_classes=7), tokenizer, CHECKPOINT_PATH, MODEL_NAME)
 
