@@ -1,0 +1,4 @@
+interface:
+  display_name: "Study 2 Handover"
+  short_description: "Continue the GPT-2 versus BERT GoEmotions study safely"
+  default_prompt: "Use $study2-handover to inspect the repository state and continue the next requested Study 2 task."
